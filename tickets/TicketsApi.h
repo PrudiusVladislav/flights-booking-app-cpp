@@ -9,9 +9,11 @@
 
 class TicketsApi {
     TicketsService* _ticketsService;
+    bool _running = true;
     void processCommand(const std::string& command);
 public:
     explicit TicketsApi(TicketsService* ticketsService): _ticketsService(ticketsService) {}
+    void run();
 
     void checkAvailability(const std::string& date, const std::string& flightNumber);
     void bookTicket(const std::string& date, const std::string& flightNumber, const std::string &seat, const std::string& username);

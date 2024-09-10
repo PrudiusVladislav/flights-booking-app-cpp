@@ -38,6 +38,19 @@ void TicketsApi::processCommand(const std::string &command) {
 }
 
 
+void TicketsApi::run() {
+    _running = true;
+    std::string command;
+    while (_running) {
+        std::cout << "Enter command: ";
+        std::getline(std::cin, command);
+        if (command == "exit") {
+            _running = false;
+            break;
+        }
+        processCommand(command);
+    }
+}
 
 void TicketsApi::checkAvailability(const std::string& date, const std::string& flightNumber) {
     FlightIdentifier identifier{date, flightNumber};
