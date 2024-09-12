@@ -12,6 +12,41 @@
 #include <vector>
 #include <map>
 
+
+// 01.03.2023 TI678 6 1-25 145$ 26-50 100$
+// priceRangeStarts[0] = 1 ->> 145
+// priceRangeStarts[1] = 26 ->> 100
+// totalSeats = 50
+
+Flight parseFlightString(const std::string& flightString) {
+    std::istringstream iss(flightString);
+
+    std::string date, flightNumber;
+    int seatsPerRow;
+    std::map<int, int> pricePerRangeStarts;
+    int totalSeats = 0;
+
+    iss >> date >> flightNumber >> seatsPerRow;
+
+    std::string seatsRangeStr;
+    std::string priceStr;
+    while (iss >> seatsRangeStr >> priceStr) {
+        size_t dashPos = seatsRangeStr.find('-');
+        size_t dollarPos = priceStr.find('$');
+        if (dashPos == std::string::npos || dollarPos == std::string::npos) {
+            continue;
+        }
+
+        int startRow = std::stoi(seatsRangeStr.substr(0, dashPos));
+        int endRow = std::stoi(seatsRangeStr.substr(dashPos + 1));
+        int price = std::stoi(priceStr.substr(0, dollarPos));
+        pricePerRangeStarts[startRow] = price;
+        totalSeats = std::max(totalSeats, endRow);
+    }
+
+    return { date, flightNumber, seatsPerRow, pricePerRangeStarts, totalSeats };
+}
+
 std::vector<Flight> FlightsRepository::getAll() const {
     std::vector<Flight> flights;
     std::ifstream file(_configPath);
@@ -21,34 +56,15 @@ std::vector<Flight> FlightsRepository::getAll() const {
         return flights;
     }
 
-    int numberOfRecords;
-    file >> numberOfRecords;
+    std::string line;
+    std::getline(file, line);
+    const int numberOfRecords = std::stoi(line);
 
     for (int i = 0; i < numberOfRecords; ++i) {
-        std::string date, flightNumber;
-        int seatsPerRow;
-        std::map<int, int> pricePerRowRange;
+        std::getline(file, line);
 
-        file >> date >> flightNumber >> seatsPerRow;
-
-        std::string line;
-        std::getline(file, line); // consume rest of the line after seatsPerRow
-
-        while (std::getline(file, line) && !line.empty()) {
-            std::istringstream iss(line);
-            int startRow, endRow, price;
-            char dollarSign;
-
-            while (iss >> startRow >> endRow >> price >> dollarSign) {
-                pricePerRowRange[startRow] = price;
-                pricePerRowRange[endRow] = price;
-            }
-        }
-
-        flights.emplace_back(date, flightNumber, seatsPerRow, pricePerRowRange);
+        flights.push_back(parseFlightString(line));
     }
 
-    file.close();
     return flights;
 }
-

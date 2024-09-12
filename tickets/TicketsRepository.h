@@ -11,7 +11,6 @@
 
 
 class TicketsRepository {
-private:
     const FlightsRepository* _flightsRepository;
     std::vector<Ticket> _tickets = {};
     int _lastId = 0;
