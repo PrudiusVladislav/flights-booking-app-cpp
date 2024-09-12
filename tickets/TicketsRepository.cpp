@@ -51,3 +51,22 @@ int TicketsRepository::add(const std::shared_ptr<Ticket> &ticket) {
 
     return ticket->getId();
 }
+
+void TicketsRepository::updateBookedStatus(const std::string username, const std::shared_ptr<Ticket> &ticket) {
+    if (ticket->isBooked()) {
+        _ticketsByUsername[username].push_back(ticket);
+    } else {
+        auto& tickets = _ticketsByUsername[username];
+        std::shared_ptr<Ticket> ticketToRemove = nullptr;
+        for (const auto& t : tickets) {
+            if (t->getId() == ticket->getId()) {
+                ticketToRemove = t;
+                break;
+            }
+        }
+
+        if (ticketToRemove) {
+            std::erase(tickets, ticketToRemove);
+        }
+    }
+}

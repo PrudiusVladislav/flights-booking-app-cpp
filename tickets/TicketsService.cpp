@@ -17,13 +17,20 @@ std::vector<std::shared_ptr<Ticket>> TicketsService::viewBooked(const FlightIden
     return _ticketsRepository->getAll(identifier, true);
 }
 
-int TicketsService::book(const BookingRequest &request) {
+int TicketsService::book(const BookingRequest& request) {
+    if (request.date.empty() ||
+        request.flightNumber.empty() ||
+        request.seat.getRow() <= 0 ||
+        request.username.empty()) {
+        throw std::runtime_error("Invalid booking request");
+    }
+
     FlightIdentifier identifier(request.date, request.flightNumber);
     std::vector<std::shared_ptr<Ticket>> availableTickets = _ticketsRepository->getAll(identifier, false);
 
     auto it = std::find_if(availableTickets.begin(), availableTickets.end(), [&](const std::shared_ptr<Ticket>& ticket) {
         return ticket->getSeat().getRow() == request.seat.getRow() &&
-            ticket->getSeat().getSeatLetter() == request.seat.getSeatLetter();
+               ticket->getSeat().getSeatLetter() == request.seat.getSeatLetter();
     });
 
     if (it == availableTickets.end()) {
@@ -32,6 +39,7 @@ int TicketsService::book(const BookingRequest &request) {
 
     std::shared_ptr<Ticket> ticket = *it;
     ticket->book(request.username);
+    _ticketsRepository->updateBookedStatus(ticket->getUsername(), ticket);
     return ticket->getId();
 }
 
@@ -43,5 +51,7 @@ void TicketsService::returnWithRefund(const int id) {
     if (!ticket->isBooked()) {
         throw std::runtime_error("Ticket is not booked");
     }
+    const std::string username = ticket->getUsername();
     ticket->cancel();
+    _ticketsRepository->updateBookedStatus(username, ticket);
 }

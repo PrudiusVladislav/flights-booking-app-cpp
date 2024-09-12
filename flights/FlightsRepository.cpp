@@ -27,6 +27,9 @@ Flight parseFlightString(const std::string& flightString) {
     int totalSeats = 0;
 
     iss >> date >> flightNumber >> seatsPerRow;
+    if (iss.fail() || date.empty() || flightNumber.empty() || seatsPerRow <= 0) {
+        throw std::runtime_error("Invalid flight string format");
+    }
 
     std::string seatsRangeStr;
     std::string priceStr;
@@ -40,6 +43,9 @@ Flight parseFlightString(const std::string& flightString) {
         int startRow = std::stoi(seatsRangeStr.substr(0, dashPos));
         int endRow = std::stoi(seatsRangeStr.substr(dashPos + 1));
         int price = std::stoi(priceStr.substr(0, dollarPos));
+        if (startRow <= 0 || endRow <= 0 || price <= 0 || startRow > endRow) {
+            throw std::runtime_error("Invalid seat range or price");
+        }
         pricePerRangeStarts.push_back({ startRow, endRow, price });
         totalSeats = std::max(totalSeats, endRow);
     }

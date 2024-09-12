@@ -29,6 +29,7 @@ public:
     std::vector<std::shared_ptr<Ticket>> getAll(const FlightIdentifier &flightIdentifier, bool booked);
 
     int add(const std::shared_ptr<Ticket> &ticket);
+    void updateBookedStatus(const std::string username, const std::shared_ptr<Ticket> &ticket);
 };
 
 
