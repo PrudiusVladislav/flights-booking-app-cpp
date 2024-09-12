@@ -18,7 +18,7 @@
 // priceRangeStarts[1] = 26 ->> 100
 // totalSeats = 50
 
-Flight parseFlightString(const std::string& flightString) {
+Flight FlightsRepository::parseFlightString(const std::string& flightString) const {
     std::istringstream iss(flightString);
 
     std::string date, flightNumber;

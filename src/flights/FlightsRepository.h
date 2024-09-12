@@ -11,8 +11,9 @@
 
 
 class FlightsRepository {
-private:
     const std::string _configPath;
+    Flight parseFlightString(const std::string& flightString) const;
+
 public:
     explicit FlightsRepository(std::string configPath) : _configPath(std::move(configPath)) {}
     [[nodiscard]] std::vector<Flight> getAll() const;
