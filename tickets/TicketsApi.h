@@ -10,9 +10,23 @@
 class TicketsApi {
     TicketsService* _ticketsService;
     bool _running = true;
+
     void processCommand(const std::string& command);
+    using CommandHandler = std::function<void(std::istringstream&)>;
+    std::unordered_map<std::string, CommandHandler> _commandHandlers;
+
+    void handleCheck(std::istringstream& iss);
+    void handleBook(std::istringstream& iss);
+    void handleReturn(std::istringstream& iss);
+    void handleView(std::istringstream& iss);
+
+    bool validateDateAndFlightNumber(const std::string& date, const std::string& flightNumber);
+    bool validateBookingDetails(const std::string& date, const std::string& flightNumber, const std::string& seat, const std::string& username);
+    bool validateTicketId(int id);
+
+    void printTicket(const Ticket& ticket, const bool showUsername);
 public:
-    explicit TicketsApi(TicketsService* ticketsService): _ticketsService(ticketsService) {}
+    explicit TicketsApi(TicketsService* ticketsService);
     void run();
 
     void checkAvailability(const std::string& date, const std::string& flightNumber);

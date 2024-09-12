@@ -7,45 +7,100 @@
 #include <iostream>
 #include <sstream>
 
-void TicketsApi::processCommand(const std::string &command) {
+TicketsApi::TicketsApi(TicketsService* ticketsService) : _ticketsService(ticketsService) {
+    _commandHandlers["check"] = [this](std::istringstream& iss) { handleCheck(iss); };
+    _commandHandlers["book"] = [this](std::istringstream& iss) { handleBook(iss); };
+    _commandHandlers["return"] = [this](std::istringstream& iss) { handleReturn(iss); };
+    _commandHandlers["view"] = [this](std::istringstream& iss) { handleView(iss); };
+}
+
+void TicketsApi::processCommand(const std::string& command) {
     std::istringstream iss(command);
     std::string cmd;
     iss >> cmd;
 
-    if (cmd == "check") {
-        std::string date, flightNumber;
-        iss >> date >> flightNumber;
-        checkAvailability(date, flightNumber);
-    } else if (cmd == "book") {
-        std::string date, flightNumber, seat, username;
-        iss >> date >> flightNumber >> seat >> username;
-        bookTicket(date, flightNumber, seat, username);
-    } else if (cmd == "return") {
-        int id;
-        iss >> id;
-        returnTicket(id);
-    } else if (cmd == "view") {
-        std::string identifier;
-        iss >> identifier;
-
-        if (std::ranges::all_of(identifier, ::isdigit)) {
-            viewById(std::stoi(identifier));
-        } else if (identifier == "username") {
-            std::string username;
-            iss >> username;
-            viewByUsername(username);
-        } else if (identifier == "flight") {
-            std::string date, flightNumber;
-            iss >> date >> flightNumber;
-            viewFlight(date, flightNumber);
-        } else {
-            std::cout << "Unknown view command\n";
-        }
+    auto it = _commandHandlers.find(cmd);
+    if (it != _commandHandlers.end()) {
+        it->second(iss);
     } else {
         std::cout << "Unknown command\n";
     }
 }
 
+void TicketsApi::handleCheck(std::istringstream& iss) {
+    std::string date, flightNumber;
+    iss >> date >> flightNumber;
+    if (!validateDateAndFlightNumber(date, flightNumber)) {
+        std::cout << "Invalid date or flight number\n";
+        return;
+    }
+    checkAvailability(date, flightNumber);
+}
+
+void TicketsApi::handleBook(std::istringstream& iss) {
+    std::string date, flightNumber, seat, username;
+    iss >> date >> flightNumber >> seat >> username;
+    if (!validateBookingDetails(date, flightNumber, seat, username)) {
+        std::cout << "Invalid booking details\n";
+        return;
+    }
+    bookTicket(date, flightNumber, seat, username);
+}
+
+void TicketsApi::handleReturn(std::istringstream& iss) {
+    int id;
+    iss >> id;
+    if (!validateTicketId(id)) {
+        std::cout << "Invalid ticket ID\n";
+        return;
+    }
+    returnTicket(id);
+}
+
+void TicketsApi::handleView(std::istringstream& iss) {
+    std::string identifier;
+    iss >> identifier;
+
+    if (std::ranges::all_of(identifier, ::isdigit)) {
+        int id = std::stoi(identifier);
+        if (!validateTicketId(id)) {
+            std::cout << "Invalid ticket ID\n";
+            return;
+        }
+        viewById(id);
+    } else if (identifier == "username") {
+        std::string username;
+        iss >> username;
+        if (username.empty()) {
+            std::cout << "Invalid username\n";
+            return;
+        }
+        viewByUsername(username);
+    } else if (identifier == "flight") {
+        std::string date, flightNumber;
+        iss >> date >> flightNumber;
+        if (!validateDateAndFlightNumber(date, flightNumber)) {
+            std::cout << "Invalid date or flight number\n";
+            return;
+        }
+        viewFlight(date, flightNumber);
+    } else {
+        std::cout << "Unknown view command\n";
+    }
+}
+
+
+bool TicketsApi::validateDateAndFlightNumber(const std::string& date, const std::string& flightNumber) {
+    return !date.empty() && !flightNumber.empty();
+}
+
+bool TicketsApi::validateBookingDetails(const std::string& date, const std::string& flightNumber, const std::string& seat, const std::string& username) {
+    return !date.empty() && !flightNumber.empty() && !seat.empty() && !username.empty();
+}
+
+bool TicketsApi::validateTicketId(int id) {
+    return id > 0;
+}
 
 void TicketsApi::run() {
     _running = true;
@@ -95,13 +150,6 @@ void TicketsApi::returnTicket(int ticketId) {
     }
 }
 
-void printTicket(const Ticket& ticket, const bool showUsername) {
-    std::cout << "> " << ticket.getFlight().getFlightNumber() << ", " << ticket.getFlight().getDate()
-        << " seat " << ticket.getSeat().getRow() << ticket.getSeat().getSeatLetter()
-        << ", price " << ticket.getPrice() << "$"
-        << (showUsername ? ", " + ticket.getUsername() : "") << std::endl;
-}
-
 void TicketsApi::viewById(const int ticketId) {
     const std::shared_ptr<Ticket> ticket = _ticketsService->view(ticketId);
     if (!ticket) {
@@ -127,4 +175,11 @@ void TicketsApi::viewFlight(const std::string& date, const std::string& flightNu
         std::cout << "> " << ticket->getSeat().toString() << " "
             << ticket->getUsername() << " " << ticket->getPrice() << "$" << std::endl;
     }
+}
+
+void TicketsApi::printTicket(const Ticket& ticket, const bool showUsername) {
+    std::cout << "> " << ticket.getFlight().getFlightNumber() << ", " << ticket.getFlight().getDate()
+        << " seat " << ticket.getSeat().getRow() << ticket.getSeat().getSeatLetter()
+        << ", price " << ticket.getPrice() << "$"
+        << (showUsername ? ", " + ticket.getUsername() : "") << std::endl;
 }
