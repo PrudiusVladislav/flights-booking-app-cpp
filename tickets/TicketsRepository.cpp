@@ -13,44 +13,41 @@ void TicketsRepository::populateTickets() {
 }
 
 std::shared_ptr<Ticket> TicketsRepository::getById(const int id) {
-    for (const auto& ticket : _tickets) {
-        if (ticket->getId() == id) {
-            return ticket;
-        }
+    auto it = _ticketsById.find(id);
+    if (it != _ticketsById.end()) {
+        return it->second;
     }
     return nullptr;
 }
 
 std::vector<std::shared_ptr<Ticket>> TicketsRepository::getByUsername(const std::string &username) {
-    std::vector<std::shared_ptr<Ticket>> userTickets;
-    for (const auto& ticket : _tickets) {
-        if (ticket->getUsername() == username) {
-            userTickets.push_back(ticket);
-        }
+    auto it = _ticketsByUsername.find(username);
+    if (it != _ticketsByUsername.end()) {
+        return it->second;
     }
-    return userTickets;
+    return {};
 }
 
-std::vector<std::shared_ptr<Ticket>> TicketsRepository::getAll(const FlightIdentifier &flightIdentifier, bool booked) {
-    std::vector<std::shared_ptr<Ticket>> availableTickets;
-    for (const auto& ticket : _tickets) {
-        const bool isMatchingDate = ticket->getFlight().getDate() == flightIdentifier.getDate();
-        const bool isMatchingFlightNumber = ticket->getFlight().getFlightNumber() == flightIdentifier.getFlightNumber();
-        if (isMatchingDate && isMatchingFlightNumber && ticket->isBooked() == booked) {
-            availableTickets.push_back(ticket);
+std::vector<std::shared_ptr<Ticket>> TicketsRepository::getAll(const FlightIdentifier &flightIdentifier, const bool booked) {
+    std::vector<std::shared_ptr<Ticket>> result;
+    auto it = _ticketsByFlight.find(flightIdentifier);
+    if (it != _ticketsByFlight.end()) {
+        for (const auto& ticket : it->second) {
+            if (ticket->isBooked() == booked) {
+                result.push_back(ticket);
+            }
         }
     }
-    return availableTickets;
+
+    return result;
 }
 
-int TicketsRepository::add(std::shared_ptr<Ticket> ticket) {
+int TicketsRepository::add(const std::shared_ptr<Ticket> &ticket) {
     ticket->setId(++_lastId);
-    _tickets.push_back(ticket);
-    return ticket->getId();
-}
+    _ticketsById[ticket->getId()] = ticket;
+    _ticketsByUsername[ticket->getUsername()].push_back(ticket);
+    const FlightIdentifier flight = ticket->getFlight();
+    _ticketsByFlight[flight].push_back(ticket);
 
-void TicketsRepository::remove(int id) {
-    _tickets.erase(std::ranges::remove_if(_tickets, [id](const std::shared_ptr<Ticket>& ticket) {
-        return ticket->getId() == id;
-    }).begin(), _tickets.end());
+    return ticket->getId();
 }

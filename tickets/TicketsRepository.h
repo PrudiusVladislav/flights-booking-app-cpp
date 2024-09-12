@@ -12,10 +12,13 @@
 
 class TicketsRepository {
     const FlightsRepository* _flightsRepository;
-    std::vector<std::shared_ptr<Ticket>> _tickets = {};
+    std::unordered_map<int, std::shared_ptr<Ticket>> _ticketsById;
+    std::unordered_map<std::string, std::vector<std::shared_ptr<Ticket>>> _ticketsByUsername;
+    std::unordered_map<FlightIdentifier, std::vector<std::shared_ptr<Ticket>>> _ticketsByFlight;
     int _lastId = 0;
 
     void populateTickets();
+
 public:
     explicit TicketsRepository(const FlightsRepository* flightsRepository): _flightsRepository(flightsRepository) {
         populateTickets();
@@ -25,8 +28,7 @@ public:
     std::vector<std::shared_ptr<Ticket>> getByUsername(const std::string &username);
     std::vector<std::shared_ptr<Ticket>> getAll(const FlightIdentifier &flightIdentifier, bool booked);
 
-    int add(std::shared_ptr<Ticket> ticket);
-    void remove(int id);
+    int add(const std::shared_ptr<Ticket> &ticket);
 };
 
 

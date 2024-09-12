@@ -44,5 +44,4 @@ void TicketsService::returnWithRefund(const int id) {
         throw std::runtime_error("Ticket is not booked");
     }
     ticket->cancel();
-    _ticketsRepository->remove(id);
 }

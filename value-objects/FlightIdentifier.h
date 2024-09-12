@@ -21,6 +21,20 @@ public:
     [[nodiscard]] std::string getFlightNumber() const {
         return _flightNumber;
     }
+
+    bool operator==(const FlightIdentifier & flight_identifier) const {
+        return _date == flight_identifier._date && _flightNumber == flight_identifier._flightNumber;
+    }
 };
+
+namespace std {
+    template <>
+    struct hash<FlightIdentifier> {
+        std::size_t operator()(const FlightIdentifier &key) const noexcept {
+            return hash<std::string>()(key.getDate()) ^
+                   hash<std::string>()(key.getFlightNumber());
+        }
+    };
+}
 
 #endif //FLIGHTIDENTIFIER_H
