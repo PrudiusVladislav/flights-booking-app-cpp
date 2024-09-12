@@ -12,7 +12,7 @@
 
 class TicketsRepository {
     const FlightsRepository* _flightsRepository;
-    std::vector<Ticket> _tickets = {};
+    std::vector<std::shared_ptr<Ticket>> _tickets = {};
     int _lastId = 0;
 
     void populateTickets();
@@ -21,11 +21,11 @@ public:
         populateTickets();
     }
 
-    Ticket* getById(int id);
-    std::vector<Ticket> getByUsername(const std::string &username);
-    std::vector<Ticket> getAll(const FlightIdentifier &flightIdentifier, bool booked);
+    std::shared_ptr<Ticket> getById(const int id);
+    std::vector<std::shared_ptr<Ticket>> getByUsername(const std::string &username);
+    std::vector<std::shared_ptr<Ticket>> getAll(const FlightIdentifier &flightIdentifier, bool booked);
 
-    int add(Ticket ticket);
+    int add(std::shared_ptr<Ticket> ticket);
     void remove(int id);
 };
 

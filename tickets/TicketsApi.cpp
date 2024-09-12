@@ -27,10 +27,19 @@ void TicketsApi::processCommand(const std::string &command) {
     } else if (cmd == "view") {
         std::string identifier;
         iss >> identifier;
-        if (isdigit(identifier[0])) {
+
+        if (std::ranges::all_of(identifier, ::isdigit)) {
             viewById(std::stoi(identifier));
+        } else if (identifier == "username") {
+            std::string username;
+            iss >> username;
+            viewByUsername(username);
+        } else if (identifier == "flight") {
+            std::string date, flightNumber;
+            iss >> date >> flightNumber;
+            viewFlight(date, flightNumber);
         } else {
-            viewByUsername(identifier);
+            std::cout << "Unknown view command\n";
         }
     } else {
         std::cout << "Unknown command\n";
@@ -54,9 +63,9 @@ void TicketsApi::run() {
 
 void TicketsApi::checkAvailability(const std::string& date, const std::string& flightNumber) {
     FlightIdentifier identifier{date, flightNumber};
-    std::vector<Ticket> availableTickets = _ticketsService->viewAvailable(identifier);
-    for (const Ticket& ticket : availableTickets) {
-        std::cout << "> " << ticket.getSeat().toString() << " " << ticket.getPrice() << "$" << std::endl;
+    std::vector<std::shared_ptr<Ticket>> availableTickets = _ticketsService->viewAvailable(identifier);
+    for (const std::shared_ptr<Ticket>& ticket : availableTickets) {
+        std::cout << "> " << ticket->getSeat().toString() << " " << ticket->getPrice() << "$" << std::endl;
     }
 }
 
@@ -94,7 +103,7 @@ void printTicket(const Ticket& ticket, const bool showUsername) {
 }
 
 void TicketsApi::viewById(const int ticketId) {
-    Ticket* ticket = _ticketsService->view(ticketId);
+    const std::shared_ptr<Ticket> ticket = _ticketsService->view(ticketId);
     if (!ticket) {
         std::cout << "Ticket not found" << std::endl;
         return;
@@ -104,18 +113,18 @@ void TicketsApi::viewById(const int ticketId) {
 }
 
 void TicketsApi::viewByUsername(const std::string& username) {
-    std::vector<Ticket> tickets = _ticketsService->viewForUser(username);
+    std::vector<std::shared_ptr<Ticket>> tickets = _ticketsService->viewForUser(username);
     std::cout << "Tickets for " << username << std::endl;
-    for (const Ticket& ticket : tickets) {
-        printTicket(ticket, false);
+    for (const std::shared_ptr<Ticket>& ticket : tickets) {
+        printTicket(*ticket, false);
     }
 }
 
 void TicketsApi::viewFlight(const std::string& date, const std::string& flightNumber) {
     FlightIdentifier identifier{date, flightNumber};
-    std::vector<Ticket> bookedTickets = _ticketsService->viewBooked(identifier);
-    for (const Ticket& ticket : bookedTickets) {
-        std::cout << "> " << ticket.getSeat().toString() << " "
-            << ticket.getUsername() << " " << ticket.getPrice() << "$" << std::endl;
+    std::vector<std::shared_ptr<Ticket>> bookedTickets = _ticketsService->viewBooked(identifier);
+    for (const std::shared_ptr<Ticket>& ticket : bookedTickets) {
+        std::cout << "> " << ticket->getSeat().toString() << " "
+            << ticket->getUsername() << " " << ticket->getPrice() << "$" << std::endl;
     }
 }

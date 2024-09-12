@@ -35,7 +35,7 @@ public:
         seatsPriceRanges(std::move(pricePerRowRange)),
         totalSeats(totalSeats) {}
 
-    [[nodiscard]] std::vector<Ticket> getAllTickets() const;
+    [[nodiscard]] std::vector<std::shared_ptr<Ticket>> getAllTickets() const;
 };
 
 

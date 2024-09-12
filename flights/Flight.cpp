@@ -6,8 +6,8 @@
 #include "../value-objects/Seat.h"
 #include "../tickets/Ticket.h"
 
-std::vector<Ticket> Flight::getAllTickets() const {
-    std::vector<Ticket> tickets;
+std::vector<std::shared_ptr<Ticket>> Flight::getAllTickets() const {
+    std::vector<std::shared_ptr<Ticket>> tickets;
     const std::string seatLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     FlightIdentifier flightIdentifier = {date, flightNumber};
 
@@ -15,7 +15,7 @@ std::vector<Ticket> Flight::getAllTickets() const {
         for (int row = seatPriceRange.startRow; row <= seatPriceRange.endRow; row++) {
             for (int seatIndex = 0; seatIndex < seatsPerRow; seatIndex++) {
                 Seat seat = {row, seatLetters[seatIndex]};
-                Ticket ticket(flightIdentifier, false, "", seat, seatPriceRange.price);
+                auto ticket = std::make_shared<Ticket>(flightIdentifier, false, "", seat, seatPriceRange.price);
                 tickets.push_back(ticket);
             }
         }
