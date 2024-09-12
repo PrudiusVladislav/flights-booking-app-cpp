@@ -8,24 +8,31 @@
 #include <string>
 #include "../tickets/Ticket.h"
 
+
+struct SeatPriceRange {
+    int startRow;
+    int endRow;
+    int price;
+};
+
 class Flight {
 public:
     std::string date;
     std::string flightNumber;
     int seatsPerRow;
-    std::map<int, int> priceRangeStarts;
+    std::vector<SeatPriceRange> seatsPriceRanges;
     int totalSeats;
 
     Flight(
         std::string date,
         std::string flightNumber,
         const int seatsPerRow,
-        std::map<int, int> pricePerRowRange,
+        std::vector<SeatPriceRange> pricePerRowRange,
         const int totalSeats) :
         date(std::move(date)),
         flightNumber(std::move(flightNumber)),
         seatsPerRow(seatsPerRow),
-        priceRangeStarts(std::move(pricePerRowRange)),
+        seatsPriceRanges(std::move(pricePerRowRange)),
         totalSeats(totalSeats) {}
 
     [[nodiscard]] std::vector<Ticket> getAllTickets() const;

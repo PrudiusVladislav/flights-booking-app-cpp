@@ -23,7 +23,7 @@ Flight parseFlightString(const std::string& flightString) {
 
     std::string date, flightNumber;
     int seatsPerRow;
-    std::map<int, int> pricePerRangeStarts;
+    std::vector<SeatPriceRange> pricePerRangeStarts;
     int totalSeats = 0;
 
     iss >> date >> flightNumber >> seatsPerRow;
@@ -40,7 +40,7 @@ Flight parseFlightString(const std::string& flightString) {
         int startRow = std::stoi(seatsRangeStr.substr(0, dashPos));
         int endRow = std::stoi(seatsRangeStr.substr(dashPos + 1));
         int price = std::stoi(priceStr.substr(0, dollarPos));
-        pricePerRangeStarts[startRow] = price;
+        pricePerRangeStarts.push_back({ startRow, endRow, price });
         totalSeats = std::max(totalSeats, endRow);
     }
 

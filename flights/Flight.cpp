@@ -11,11 +11,11 @@ std::vector<Ticket> Flight::getAllTickets() const {
     const std::string seatLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     FlightIdentifier flightIdentifier = {date, flightNumber};
 
-    for (const auto& [startRow, price] : pricePerRowRange) {
-        for (int row = startRow; row <= startRow + seatsPerRow - 1; ++row) {
-            for (int seatIndex = 0; seatIndex < seatsPerRow; ++seatIndex) {
+    for (const SeatPriceRange& seatPriceRange : seatsPriceRanges) {
+        for (int row = seatPriceRange.startRow; row <= seatPriceRange.endRow; row++) {
+            for (int seatIndex = 0; seatIndex < seatsPerRow; seatIndex++) {
                 Seat seat = {row, seatLetters[seatIndex]};
-                Ticket ticket(flightIdentifier, false, "", seat, price);
+                Ticket ticket(flightIdentifier, false, "", seat, seatPriceRange.price);
                 tickets.push_back(ticket);
             }
         }
